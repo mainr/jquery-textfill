@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @preserve  textfill
  * @name      jquery.textfill.js
  * @author    Russ Painter
@@ -39,6 +39,7 @@
 			minFontPixels    : 4,
 			innerTag         : 'span',
 			widthOnly        : false,
+			truncateOnFail   : false,
 			success          : null, // callback when a resizing is done
 			callback         : null, // callback when a resizing is done (deprecated, use success)
 			fail             : null, // callback when a resizing is failed
@@ -283,23 +284,37 @@
 			);
 
 			// Oops, something wrong happened!
-			// We weren't supposed to exceed the original size
+			// If font-size increasing, we weren't supposed to exceed the original size
+			// If font-size decreasing, we hit minFontPixels, and still won't fit
 			if ((ourText.width()  > maxWidth) ||
 				(ourText.height() > maxHeight && !Opts.widthOnly)) {
 
-				ourText.css('font-size', oldFontSize);
+				if (Opts.truncateOnFail) {
+					// leave font-size set to current (minFontPixels)
+					// set overflow:hidden to truncate overflow text
+					ourText.css("overflow", "hidden");
 
-				// Failure callback
-				if (Opts.fail)
-					Opts.fail(this);
+					_debug(
+						'[TextFill] Failure (TRUNCATING) { ' +
+						'Current Width: '  + ourText.width()  + ', ' +
+						'Maximum Width: '  + maxWidth         + ' }'
+					);
+				} 
+				else {
+					ourText.css('font-size', oldFontSize);
 
-				_debug(
-					'[TextFill] Failure { ' +
-					'Current Width: '  + ourText.width()  + ', ' +
-					'Maximum Width: '  + maxWidth         + ', ' +
-					'Current Height: ' + ourText.height() + ', ' +
-					'Maximum Height: ' + maxHeight        + ' }'
-				);
+					// Failure callback
+					if (Opts.fail)
+						Opts.fail(this);
+
+					_debug(
+						'[TextFill] Failure { ' +
+						'Current Width: '  + ourText.width()  + ', ' +
+						'Maximum Width: '  + maxWidth         + ', ' +
+						'Current Height: ' + ourText.height() + ', ' +
+						'Maximum Height: ' + maxHeight        + ' }'
+					);
+				}
 			}
 			else if (Opts.success) {
 				Opts.success(this);
@@ -321,4 +336,3 @@
 	};
 
 })(window.jQuery);
-
